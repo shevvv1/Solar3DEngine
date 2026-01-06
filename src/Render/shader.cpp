@@ -1,4 +1,5 @@
 #include "shader.h"
+#include "glad/glad.h"
 #include <fstream>
 #include <iostream>
 #include <ostream>
@@ -188,8 +189,19 @@ unsigned int ShaderLoader::CompileShader(const GLenum type,
     int length;
     glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
     char infoLog[length];
+    std::string type_str;
+    switch (type) {
+    case GL_VERTEX_SHADER:
+      type_str = "VertexShader";
+      break;
+    case GL_FRAGMENT_SHADER:
+      type_str = "FragmentShader";
+      break;
+    default:
+      type_str = "UnknownType";
+    }
     glGetShaderInfoLog(id, length, NULL, infoLog);
-    std::cerr << "ERROR::SHADER::" << type << "::COMPILATION_FAILED\n"
+    std::cerr << "ERROR::SHADER::" << type_str << "::COMPILATION_FAILED\n"
               << infoLog << std::endl;
   }
 

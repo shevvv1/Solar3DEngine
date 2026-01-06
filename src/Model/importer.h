@@ -10,10 +10,10 @@
 #include "Render/mesh.h"
 
 namespace AssimpImport {
-std::vector<Mesh> LoadModelMeshes(std::string const &path);
-std::vector<Mesh> processNodes(aiNode *node, const aiScene *scene,
-                               const std::string &rootModelDir);
-Mesh processMesh(aiMesh *mesh, const aiScene *scene,
-                 const std::string &rootModelDir);
+std::vector<Mesh<Vertex>> LoadModelMeshes(std::string const &path);
+std::vector<Mesh<Vertex>> processNodes(aiNode *node, const aiScene *scene,
+                                       const std::string &rootModelDir);
+Mesh<Vertex> processMesh(aiMesh *mesh, const aiScene *scene,
+                         const std::string &rootModelDir);
 Material loadMaterial(aiMaterial *mat, const std::string &rootModelDir);
 } // namespace AssimpImport

@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <iostream>
+#include "Render/shader.h"
 
 #define ORTHO 0
 #define PERSPECTIVE 1
@@ -17,7 +17,8 @@ public:
   Camera(int width, int height, glm::vec3 position, glm::vec3 direction,
          bool projMode = PERSPECTIVE);
 
-  void updateCam(int shaderID);
+  void updateCam(Shader &shader);
+  void updateCamSkyBox(Shader &shader);
 
   void changeDrawDistant(float nearPlane, float farPlane);
   void changeFOV(float FOVdeg);

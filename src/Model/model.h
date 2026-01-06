@@ -8,8 +8,9 @@
 class Model {
 public:
   Model() = default;
-  Model(std::vector<Mesh> &mesh_array, glm::vec3 coord = glm::vec3(0.0f));
-  Model(Mesh &Mesh, glm::vec3 coord = glm::vec3(0.0f));
+  Model(std::vector<Mesh<Vertex>> &mesh_array,
+        glm::vec3 coord = glm::vec3(0.0f));
+  Model(Mesh<Vertex> &Mesh, glm::vec3 coord = glm::vec3(0.0f));
   Model(std::string const &path, glm::vec3 coord = glm::vec3(0.0f));
 
   void Draw(Shader &shader);
@@ -18,10 +19,10 @@ public:
   void Move(glm::vec3 coord);
   void updateModelMat();
 
-  void setMeshes(std::vector<Mesh> meshes);
+  void setMeshes(std::vector<Mesh<Vertex>> meshes);
 
 private:
-  std::vector<Mesh> m_meshes;
+  std::vector<Mesh<Vertex>> m_meshes;
 
   glm::vec3 m_position;
   glm::vec3 m_rotation;

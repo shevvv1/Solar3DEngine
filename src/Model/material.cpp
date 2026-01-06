@@ -1,31 +1,41 @@
 #include "material.h"
 
-void Material::Bind() {
-  shader->Activate();
+void Material::Bind(Shader &shader) {
+  // shader->Activate();
 
   // Bind all properties
   for (const auto &[name, value] : vectors) {
-    shader->setUniformVec3f(name, value);
+    shader.setUniformVec3f(name, value);
   }
 
   for (const auto &[name, value] : colors) {
-    shader->setUniformVec4f(name, value);
+    shader.setUniformVec4f(name, value);
   }
 
   for (const auto &[name, value] : floats) {
-    shader->setUniformFloat(name, value);
+    shader.setUniformFloat(name, value);
   }
   for (const auto &[name, value] : flags) {
-    shader->setUniformBool(name, value);
+    shader.setUniformBool(name, value);
   }
 
-  // Bind textures with slots
+  GLint currentTexUnit;
+  glGetIntegerv(GL_ACTIVE_TEXTURE, &currentTexUnit);
+
   int textureSlot = 0;
   for (const auto &[name, texture] : textures) {
     texture->Bind(textureSlot);
-    shader->setUniformInt(name, textureSlot);
+    shader.setUniformInt(name, textureSlot);
     textureSlot++;
   }
+
+  // Restore previous texture unit
+  glActiveTexture(currentTexUnit);
+}
+
+bool Material::Empty() {
+  return (vectors.empty() && colors.empty() && floats.empty() &&
+          flags.empty() && textures.empty());
 }
 
 void Material::setNewColor(const std::string &name, const glm::vec4 &color) {

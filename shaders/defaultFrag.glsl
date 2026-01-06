@@ -10,6 +10,7 @@ in VS_OUT{
   mat3 TBN;
 }fs_in;
 
+uniform vec3 viewPos; 
 #include "phong.glsl"
 
 void main()

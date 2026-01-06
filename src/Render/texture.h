@@ -8,32 +8,38 @@
 #include "external/stb_image.h"
 
 class Texture {
-private:
-  unsigned int textureID;
-  int iWidth, iHeight, iNumOfComponents;
-  std::string type;
-
 public:
-  std::string path;
-  Texture(const std::string &filepath);
-  // ~Texture();
+  enum class TexType { CUBEMAP, BASIC };
 
-  std::string GetType() { return type; }
+  Texture() = default;
+  Texture(const std::string &path,
+          Texture::TexType type = Texture::TexType::BASIC);
+
   void Bind(unsigned int slot = 0);
   void Unbind();
+
+  void setType(TexType type) { m_type = type; }
+
+private:
+  unsigned int m_textureID;
+  TexType m_type;
+  int m_iWidth, m_iHeight, m_iNumOfComponents;
 };
 
 void unbindTextures();
 
 class TextureManager {
 public:
-  static std::shared_ptr<Texture> getTexture(const std::string &path) {
+  static std::shared_ptr<Texture>
+  getTexture(const std::string &path,
+             const Texture::TexType type = Texture::TexType::BASIC) {
+
     auto it = cache.find(path);
     if (it != cache.end()) {
       return it->second;
     }
 
-    auto texture = std::make_shared<Texture>(path);
+    auto texture = std::make_shared<Texture>(path, type);
     cache[path] = texture;
     return texture;
   }

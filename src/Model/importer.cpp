@@ -8,12 +8,12 @@
 #include <memory>
 #include <string>
 
-std::vector<Mesh> AssimpImport::LoadModelMeshes(std::string const &path) {
+std::vector<Mesh<Vertex>>
+AssimpImport::LoadModelMeshes(std::string const &path) {
   Assimp::Importer import;
   const aiScene *scene = import.ReadFile(
-      path, aiProcess_Triangulate | aiProcess_CalcTangentSpace |
-                aiProcess_FindInvalidData | aiProcess_OptimizeMeshes |
-                aiProcess_GenSmoothNormals);
+      path, aiProcess_Triangulate | aiProcess_GenSmoothNormals |
+                aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices);
 
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
       !scene->mRootNode) {
@@ -26,10 +26,11 @@ std::vector<Mesh> AssimpImport::LoadModelMeshes(std::string const &path) {
 MaterialType detectMaterialType(aiMaterial *material);
 std::shared_ptr<Texture> getTexture_ptr(aiTextureType type);
 
-std::vector<Mesh> AssimpImport::processNodes(aiNode *node, const aiScene *scene,
-                                             const std::string &rootModelDir) {
+std::vector<Mesh<Vertex>>
+AssimpImport::processNodes(aiNode *node, const aiScene *scene,
+                           const std::string &rootModelDir) {
   // process all the node's meshes (if any)
-  std::vector<Mesh> meshes;
+  std::vector<Mesh<Vertex>> meshes;
   std::clog << "  Processing Node " << node->mName.C_Str() << std::endl;
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
@@ -38,15 +39,15 @@ std::vector<Mesh> AssimpImport::processNodes(aiNode *node, const aiScene *scene,
   }
   // then do the same for each of its children
   for (unsigned int i = 0; i < node->mNumChildren; i++) {
-    std::vector<Mesh> tmp_vec =
+    std::vector<Mesh<Vertex>> tmp_vec =
         AssimpImport::processNodes(node->mChildren[i], scene, rootModelDir);
     meshes.insert(meshes.end(), tmp_vec.begin(), tmp_vec.end());
   }
   return meshes;
 }
 
-Mesh AssimpImport::processMesh(aiMesh *mesh, const aiScene *scene,
-                               const std::string &rootModelDir) {
+Mesh<Vertex> AssimpImport::processMesh(aiMesh *mesh, const aiScene *scene,
+                                       const std::string &rootModelDir) {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
   Material material;
@@ -162,14 +163,13 @@ Material AssimpImport::loadMaterial(aiMaterial *mat,
     }
     float shine, sh_str;
     aiGetMaterialFloat(mat, AI_MATKEY_SHININESS, &shine);
-    aiGetMaterialFloat(mat, AI_MATKEY_SHININESS_STRENGTH, &sh_str);
     material.setNewFloat("materialPhong.shininess", shine);
+    aiGetMaterialFloat(mat, AI_MATKEY_SHININESS_STRENGTH, &sh_str);
     material.setNewFloat("materialPhong.shininessStrength", sh_str);
-
     break;
 
   case MaterialType::PBR:
-    mat->GetTexture(aiTextureType_BASE_COLOR, 0, &str);
+    mat->GetTexture(aiTextureType_DIFFUSE, 0, &str);
     tex_path = rootModelDir + '/' + str.C_Str();
     material.setNewMap("u_diffuseMap", TextureManager::getTexture(tex_path));
     material.setNewFlag("materialPhong.hasDiffuseMap", true);
@@ -186,9 +186,12 @@ MaterialType detectMaterialType(aiMaterial *material) {
   bool hasPBRMaps =
       (material->GetTextureCount(aiTextureType_METALNESS) > 0) ||
       (material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0);
-
-  if (hasPBRMaps)
-    return MaterialType::PBR; // TODO: CHANGE TO PBR LATER
+  float f;
+  bool hasPBRprop =
+      (material->Get(AI_MATKEY_METALLIC_FACTOR, f) == AI_SUCCESS ||
+       material->Get(AI_MATKEY_ROUGHNESS_FACTOR, f) == AI_SUCCESS);
+  if (hasPBRMaps || hasPBRprop)
+    return MaterialType::PBR;
   else
     return MaterialType::PHONG;
 }

@@ -32,8 +32,10 @@ void Render::sdl_gl_init() {
     isRun = false;
   }
 
-  // Устанавливаем viewport OpenGL
-  glViewport(0, 0, screen_width, screen_height);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -41,6 +43,7 @@ void Render::sdl_gl_init() {
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetSwapInterval(1);
 
+  glViewport(0, 0, screen_width, screen_height);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 }

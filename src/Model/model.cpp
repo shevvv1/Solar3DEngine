@@ -65,4 +65,4 @@ void Model::loadModel(std::string const &path) {
   m_meshes = AssimpImport::LoadModelMeshes(path);
 }
 
-void Model::setMeshes(std::vector<Mesh> meshes) { m_meshes = meshes; }
+void Model::setMeshes(std::vector<Mesh<Vertex>> meshes) { m_meshes = meshes; }

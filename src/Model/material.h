@@ -11,12 +11,12 @@ enum class MaterialType { PHONG, PBR, CUSTOM };
 class Material {
 public:
   Material() = default;
-  Material(Shader &shader, MaterialType type);
 
   std::shared_ptr<Shader> shader;
   MaterialType type;
 
-  void Bind();
+  void Bind(Shader &shader);
+  bool Empty();
 
   void setNewColor(const std::string &name, const glm::vec4 &color);
   void setNewMap(const std::string &name,

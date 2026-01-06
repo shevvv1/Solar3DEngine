@@ -11,7 +11,7 @@ public:
   Shader(const unsigned int ID);
   ~Shader() { Delete(); }
 
-  unsigned int GetId() { return ID; }
+  unsigned int GetID() { return ID; }
 
   void setUniformInt(const std::string name, int a);
   void setUniformBool(const std::string name, bool a);
