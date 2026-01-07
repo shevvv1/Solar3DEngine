@@ -8,9 +8,9 @@
 
 namespace fs = std::filesystem;
 
-Texture::Texture(const std::string &path, Texture::TexType type) {
+Texture::Texture(const std::string &path, Texture::TexType type, bool flipUVs) {
 
-  stbi_set_flip_vertically_on_load(true);
+  stbi_set_flip_vertically_on_load(flipUVs);
   m_type = type;
   unsigned char *img_data;
 
@@ -48,9 +48,9 @@ Texture::Texture(const std::string &path, Texture::TexType type) {
 
     fs::path dir_path = path;
     std::map<std::string, int> faceOrder = {
-        {"right", 0}, {"left", 1}, {"top", 2},  {"bottom", 3},
-        {"front", 4}, {"back", 5}, {"posx", 0}, {"negx", 1},
-        {"posy", 2},  {"negy", 3}, {"posz", 4}, {"negz", 5}};
+        {"right", 0}, {"left", 1}, {"top", 2}, {"bottom", 3},
+        {"front", 4}, {"back", 5}, {"px", 0},  {"nx", 1},
+        {"py", 2},    {"ny", 3},   {"pz", 4},  {"nz", 5}};
 
     int i = 0;
     for (const auto &entry : fs::directory_iterator(dir_path)) {

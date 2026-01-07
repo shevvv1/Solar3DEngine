@@ -1,4 +1,5 @@
 #include "GL_render.h"
+#include "camera.h"
 #include <SDL3/SDL_init.h>
 #include <iostream>
 
@@ -63,6 +64,20 @@ Render::~Render() {
   SDL_GL_DestroyContext(glContext);
   SDL_DestroyWindow(window);
   SDL_Quit();
+}
+
+void Render::onEvent(SDL_Event *event, Camera &camera) {
+  if (event->type == SDL_EVENT_QUIT) {
+    isRun = false;
+  }
+  if (event->type == SDL_EVENT_WINDOW_RESIZED) {
+    int width, height;
+    SDL_GetWindowSize(GetWindowID(), &width, &height);
+    setScreenWidth(width);
+    setScreenHeight(height);
+    UpdateViewPort();
+    camera.changeSize(width, height);
+  }
 }
 
 void Render::UpdateViewPort() { glViewport(0, 0, screen_width, screen_height); }

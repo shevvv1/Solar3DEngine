@@ -57,7 +57,7 @@ void Model::Scale(glm::vec3 size) {
 
 void Model::Move(glm::vec3 coord) {
   m_position = coord;
-  m_position.y = -m_position.y;
+  m_position.y = m_position.y;
   updateModelMat();
 }
 

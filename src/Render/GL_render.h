@@ -15,7 +15,7 @@ public:
   Render(int width, int height, std::string nameOfWindow);
   ~Render();
 
-  void onEvent(SDL_Event *event);
+  void onEvent(SDL_Event *event, Camera &camera);
   void loadCamera(Camera *camera_m);
   void UpdateViewPort();
 
@@ -25,7 +25,7 @@ public:
   int GetScreenWidth() { return screen_width; }
   int GetScreenHeight() { return screen_height; }
   SDL_Window *GetWindowID() { return window; }
-  bool isRuning(bool run = true) { return isRun; }
+  bool isRuning() { return isRun; }
 
   bool isRun;
 

@@ -13,7 +13,8 @@ public:
 
   Texture() = default;
   Texture(const std::string &path,
-          Texture::TexType type = Texture::TexType::BASIC);
+          Texture::TexType type = Texture::TexType::BASIC,
+          bool flipUVs = false);
 
   void Bind(unsigned int slot = 0);
   void Unbind();
@@ -32,7 +33,8 @@ class TextureManager {
 public:
   static std::shared_ptr<Texture>
   getTexture(const std::string &path,
-             const Texture::TexType type = Texture::TexType::BASIC) {
+             const Texture::TexType type = Texture::TexType::BASIC,
+             bool flipUVs = false) {
 
     auto it = cache.find(path);
     if (it != cache.end()) {

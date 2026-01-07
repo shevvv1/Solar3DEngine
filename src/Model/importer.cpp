@@ -11,9 +11,10 @@
 std::vector<Mesh<Vertex>>
 AssimpImport::LoadModelMeshes(std::string const &path) {
   Assimp::Importer import;
-  const aiScene *scene = import.ReadFile(
-      path, aiProcess_Triangulate | aiProcess_GenSmoothNormals |
-                aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices);
+  const aiScene *scene =
+      import.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals |
+                                aiProcess_FlipUVs | aiProcess_CalcTangentSpace |
+                                aiProcess_JoinIdenticalVertices);
 
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
       !scene->mRootNode) {
@@ -56,12 +57,12 @@ Mesh<Vertex> AssimpImport::processMesh(aiMesh *mesh, const aiScene *scene,
     Vertex vertex;
     glm::vec3 vector;
     vector.x = (float)mesh->mVertices[i].x;
-    vector.y = -(float)mesh->mVertices[i].y;
+    vector.y = (float)mesh->mVertices[i].y;
     vector.z = (float)mesh->mVertices[i].z;
     vertex.position = vector;
     if (mesh->HasNormals()) {
       vector.x = (float)mesh->mNormals[i].x;
-      vector.y = -(float)mesh->mNormals[i].y;
+      vector.y = (float)mesh->mNormals[i].y;
       vector.z = (float)mesh->mNormals[i].z;
       vertex.Normal = vector;
     }
