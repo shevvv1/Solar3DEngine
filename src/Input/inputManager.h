@@ -11,7 +11,6 @@
 class InputManager {
 public:
   enum class KeyState { RELEASED, PRESSED, JUST_PRESSED, JUST_RELEASED };
-  enum class MouseButton { LEFT, RIGHT, MIDDLE };
 
   InputManager();
 
@@ -21,23 +20,25 @@ public:
   bool isKeyJustPressed(int keycode);
   bool isKeyReleased(int keycode);
 
-  bool isMouseButtonPressed(MouseButton button);
   glm::vec2 getMousePosition();
-  glm::vec2 getMouseDelta();
+  glm::vec2 getMouseMotion() { return m_mouseRelMotion; }
+  glm::vec2 getMouseDelta() { return m_mouseDelta; }
   float getMouseScroll();
 
-  void bindKey(int keycode, const std::string &actionName,
+  void bindKey(int keycode, const std::string &actionName, bool longPress,
                std::function<void()> func);
   bool isActionPressed(const std::string &action);
   int getActionKey(const std::string &action);
   std::string getKeyAction(int key);
 
-  void processInputSDL(SDL_Event &event);
+  void onSDLEvent(SDL_Event &event);
+  void ProcessInput();
 
 private:
   struct KeyData {
     KeyState state;
     bool pressedLastFrame;
+    bool longPress;
   };
 
   std::unordered_map<int, KeyData> m_keyboardState;
@@ -47,13 +48,15 @@ private:
   std::unordered_map<std::string, std::function<void()>> m_actionMaps;
 
   glm::vec2 m_mousePosition;
+  glm::vec2 m_mouseRelMotion;
   glm::vec2 m_lastMousePosition;
   glm::vec2 m_mouseDelta;
   float m_mouseScroll;
   bool m_firstMouseMove;
 
   void onKeyEvent(int keycode, bool pressed);
-  void onMouseButtonEvent(int button_code, bool pressed);
   void onMouseMove(float x, float y);
+  void onMouseMoveRel(float xrel, float yrel);
   void onMouseScroll(float y);
+  void execAction(const std::string &action);
 };

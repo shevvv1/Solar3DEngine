@@ -20,25 +20,33 @@ public:
   void updateCam(Shader &shader);
   void updateCamSkyBox(Shader &shader);
 
-  void changeDrawDistant(float nearPlane, float farPlane);
-  void changeFOV(float FOVdeg);
-  void changeProgMode(bool mode);
-  void changeSize(int width, int height);
+  void setPosition(glm::vec3 position);
+  void setDirection(glm::vec3 direction);
+  void setDrawDistant(float nearPlane, float farPlane);
+  void setFOV(float FOVdeg);
+  void setProgMode(bool mode);
+  void setSize(int width, int height);
+  void setYawPitch(glm::vec2 yawPitch);
 
-  glm::vec3 GetPosition() { return position; }
-  glm::vec3 GetDirection() { return direction; }
+  void offsetPosition(glm::vec3 offset);
+  void offsetPosition(float x = 0, float y = 0, float z = 0);
+  void offsetYawPitch(glm::vec2 yawPitch);
+  void offsetYawPitch(float yaw, float pitch);
 
-private:
-  int width, height;
-
-  bool mov_forward, mov_back, mov_left, mov_right, mov_up, mov_down;
+  glm::vec3 GetPosition() { return m_position; }
+  glm::vec3 GetDirection() { return m_direction; }
+  glm::vec3 GetUpVec() { return m_up; }
+  glm::vec3 GetRightVec() { return m_right; }
 
   float yaw, pitch;
 
-  float nearPlane, farPlane;
-  float FOVdeg;
-  bool proj_mode;
+private:
+  int m_width, m_height;
 
-  glm::vec3 position, up, direction;
-  glm::mat4 proj, view;
+  float m_nearPlane, m_farPlane;
+  float m_FOV;
+  bool m_proj_mode;
+
+  glm::vec3 m_right, m_up, m_position, m_direction;
+  glm::mat4 m_proj, m_view;
 };

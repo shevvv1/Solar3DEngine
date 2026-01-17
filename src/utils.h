@@ -5,6 +5,10 @@
 
 namespace Utils {
 
+template <class T> inline void hash_combine(std::size_t &seed, const T &v) {
+  seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
 template <typename K, typename V> class BiMap {
 private:
   std::unordered_map<K, V> keyToValue;

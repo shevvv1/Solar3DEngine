@@ -24,14 +24,16 @@ public:
   void setUniformVec3f(const std::string name, glm::vec3 vector);
   void setUniformVec4f(const std::string name, glm::vec4 vector);
   void setUniformMatrix4f(const std::string name, glm::mat4 mtrx);
+  void setUniformMatrix3f(const std::string name, glm::mat3 mtrx);
 
-  void HotReload(const std::string &VertexPath,
-                 const std::string &FragmentPath);
+  void HotReload();
   void Activate();
   void Delete();
 
 private:
   unsigned int ID;
+  std::string m_VertexSrcPath;
+  std::string m_FragmentSrcPath;
 };
 
 class ShaderLoader {

@@ -29,8 +29,8 @@ std::string ShaderLoader::GetShaderSrcFromFile(const std::string &path) {
   }
   for (auto checkPath : m_includes) {
     if (checkPath == path) {
-      std::cout << "ERROR::Shader include path already included! --> " << path
-                << std::endl;
+      // std::cout << "INFO::Shader include path already included! --> " << path
+      //         << std::endl;
       return "";
     }
   }
@@ -63,11 +63,13 @@ Shader::Shader(const unsigned int id) { ID = id; }
 
 Shader::Shader(const std::string &VertexPath, const std::string &FragmentPath) {
   ID = ShaderLoader().GenerateShaderProgramID(VertexPath, FragmentPath);
+  m_VertexSrcPath = VertexPath;
+  m_FragmentSrcPath = FragmentPath;
 }
 
-void Shader::HotReload(const std::string &VertexPath,
-                       const std::string &FragmentPath) {
-  ID = ShaderLoader().GenerateShaderProgramID(VertexPath, FragmentPath);
+void Shader::HotReload() {
+  ID = ShaderLoader().GenerateShaderProgramID(m_VertexSrcPath,
+                                              m_FragmentSrcPath);
 }
 
 void Shader::setUniformInt(const std::string name, int a) {
@@ -110,7 +112,10 @@ void Shader::setUniformMatrix4f(const std::string name, glm::mat4 mtrx) {
   glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE,
                      glm::value_ptr(mtrx));
 }
-
+void Shader::setUniformMatrix3f(const std::string name, glm::mat3 mtrx) {
+  glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE,
+                     glm::value_ptr(mtrx));
+}
 void Shader::Activate() { glUseProgram(ID); }
 
 void Shader::Delete() { glDeleteProgram(ID); }

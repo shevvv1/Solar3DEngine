@@ -1,0 +1,2 @@
+BasedOnStyle: Google
+ColumnLimit: 120 # <-- ВАЖНО: 0 отключает все переносы!

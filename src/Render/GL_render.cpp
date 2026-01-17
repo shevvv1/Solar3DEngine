@@ -5,6 +5,8 @@
 
 void Render::sdl_gl_init() {
 
+  m_showCursor = false;
+
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
     isRun = false;
@@ -44,6 +46,8 @@ void Render::sdl_gl_init() {
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetSwapInterval(1);
 
+  SDL_SetWindowRelativeMouseMode(window, m_showCursor);
+
   glViewport(0, 0, screen_width, screen_height);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
@@ -66,6 +70,17 @@ Render::~Render() {
   SDL_Quit();
 }
 
+bool Render::Run() {
+  m_deltaTime.currentFrame = SDL_GetPerformanceCounter();
+  m_deltaTime.delta_time =
+      (float)((m_deltaTime.currentFrame - m_deltaTime.lastFrame) * 1000 /
+              (float)SDL_GetPerformanceFrequency()) *
+      0.001f;
+  m_deltaTime.lastFrame = m_deltaTime.currentFrame;
+
+  return isRun;
+}
+
 void Render::onEvent(SDL_Event *event, Camera &camera) {
   if (event->type == SDL_EVENT_QUIT) {
     isRun = false;
@@ -76,8 +91,19 @@ void Render::onEvent(SDL_Event *event, Camera &camera) {
     setScreenWidth(width);
     setScreenHeight(height);
     UpdateViewPort();
-    camera.changeSize(width, height);
+    camera.setSize(width, height);
   }
+}
+void Render::setCursorMode(bool mode) {
+  m_showCursor = mode;
+
+  SDL_SetWindowRelativeMouseMode(window, m_showCursor);
+}
+
+void Render::switchCursorMode() {
+  m_showCursor = !m_showCursor;
+
+  SDL_SetWindowRelativeMouseMode(window, m_showCursor);
 }
 
 void Render::UpdateViewPort() { glViewport(0, 0, screen_width, screen_height); }

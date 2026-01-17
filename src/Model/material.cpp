@@ -1,7 +1,6 @@
 #include "material.h"
 
 void Material::Bind(Shader &shader) {
-  // shader->Activate();
 
   // Bind all properties
   for (const auto &[name, value] : vectors) {
@@ -15,6 +14,11 @@ void Material::Bind(Shader &shader) {
   for (const auto &[name, value] : floats) {
     shader.setUniformFloat(name, value);
   }
+
+  for (const auto &[name, value] : ints) {
+    shader.setUniformInt(name, value);
+  }
+
   for (const auto &[name, value] : flags) {
     shader.setUniformBool(name, value);
   }
@@ -35,7 +39,12 @@ void Material::Bind(Shader &shader) {
 
 bool Material::Empty() {
   return (vectors.empty() && colors.empty() && floats.empty() &&
-          flags.empty() && textures.empty());
+          flags.empty() && textures.empty() && ints.empty());
+}
+
+void Material::setType(MaterialType type) {
+  setNewInt("u_MatType", type);
+  m_type = type;
 }
 
 void Material::setNewColor(const std::string &name, const glm::vec4 &color) {
@@ -50,6 +59,8 @@ void Material::setNewMap(const std::string &name,
 void Material::setNewFloat(const std::string &name, float num) {
   floats[name] = num;
 }
+
+void Material::setNewInt(const std::string &name, int num) { ints[name] = num; }
 
 void Material::setNewVector(const std::string &name, const glm::vec3 &vector) {
   vectors[name] = vector;
