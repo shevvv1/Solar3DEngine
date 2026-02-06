@@ -5,21 +5,17 @@
 
 namespace Utils {
 
-template <class T> inline void hash_combine(std::size_t &seed, const T &v) {
-  seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
-
-template <typename K, typename V> class BiMap {
-private:
+template <typename K, typename V>
+class BiMap {
+ private:
   std::unordered_map<K, V> keyToValue;
   std::unordered_map<V, K> valueToKey;
 
-public:
+ public:
   // Insert a key-value pair
-  bool insert(const K &key, const V &value) {
+  bool insert(const K& key, const V& value) {
     // Check if either key or value already exists
-    if (keyToValue.find(key) != keyToValue.end() ||
-        valueToKey.find(value) != valueToKey.end()) {
+    if (keyToValue.find(key) != keyToValue.end() || valueToKey.find(value) != valueToKey.end()) {
       return false;
     }
 
@@ -29,7 +25,7 @@ public:
   }
 
   // Get value by key
-  V getValue(const K &key) const {
+  V getValue(const K& key) const {
     auto it = keyToValue.find(key);
     if (it == keyToValue.end()) {
       throw std::out_of_range("Key not found");
@@ -38,7 +34,7 @@ public:
   }
 
   // Get key by value
-  K getKey(const V &value) const {
+  K getKey(const V& value) const {
     auto it = valueToKey.find(value);
     if (it == valueToKey.end()) {
       throw std::out_of_range("Value not found");
@@ -47,17 +43,13 @@ public:
   }
 
   // Check if key exists
-  bool hasKey(const K &key) const {
-    return keyToValue.find(key) != keyToValue.end();
-  }
+  bool hasKey(const K& key) const { return keyToValue.find(key) != keyToValue.end(); }
 
   // Check if value exists
-  bool hasValue(const V &value) const {
-    return valueToKey.find(value) != valueToKey.end();
-  }
+  bool hasValue(const V& value) const { return valueToKey.find(value) != valueToKey.end(); }
 
   // Remove by key
-  bool removeByKey(const K &key) {
+  bool removeByKey(const K& key) {
     auto it = keyToValue.find(key);
     if (it != keyToValue.end()) {
       valueToKey.erase(it->second);
@@ -68,7 +60,7 @@ public:
   }
 
   // Remove by value
-  bool removeByValue(const V &value) {
+  bool removeByValue(const V& value) {
     auto it = valueToKey.find(value);
     if (it != valueToKey.end()) {
       keyToValue.erase(it->second);
@@ -95,4 +87,4 @@ public:
   auto end() const { return keyToValue.end(); }
 };
 
-} // namespace Utils
+}  // namespace Utils

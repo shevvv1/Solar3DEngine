@@ -1,18 +1,19 @@
 #include "GL_render.h"
-#include "camera.h"
+
 #include <SDL3/SDL_init.h>
+
 #include <iostream>
 
-void Render::sdl_gl_init() {
+#include "camera.h"
 
+void Render::sdl_gl_init() {
   m_showCursor = false;
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
     isRun = false;
   }
-  window = SDL_CreateWindow("Test", screen_width, screen_height,
-                            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+  window = SDL_CreateWindow("Test", screen_width, screen_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
   if (window == nullptr) {
     SDL_Log("Failed to create window: %s\n", SDL_GetError());
@@ -48,19 +49,16 @@ void Render::sdl_gl_init() {
 
   SDL_SetWindowRelativeMouseMode(window, m_showCursor);
 
+  glEnable(GL_FRAMEBUFFER_SRGB);
   glViewport(0, 0, screen_width, screen_height);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 }
 
-Render::Render()
-    : screen_width{640}, screen_height{480}, name{"3DENG"}, isRun{true} {
-  sdl_gl_init();
-}
+Render::Render() : screen_width{640}, screen_height{480}, name{"3DENG"}, isRun{true} { sdl_gl_init(); }
 
 Render::Render(int width, int height, std::string nameOfWindow)
-    : screen_width{width}, screen_height{height}, name{nameOfWindow},
-      isRun{true} {
+    : screen_width{width}, screen_height{height}, name{nameOfWindow}, isRun{true} {
   sdl_gl_init();
 }
 
@@ -73,15 +71,14 @@ Render::~Render() {
 bool Render::Run() {
   m_deltaTime.currentFrame = SDL_GetPerformanceCounter();
   m_deltaTime.delta_time =
-      (float)((m_deltaTime.currentFrame - m_deltaTime.lastFrame) * 1000 /
-              (float)SDL_GetPerformanceFrequency()) *
+      (float)((m_deltaTime.currentFrame - m_deltaTime.lastFrame) * 1000 / (float)SDL_GetPerformanceFrequency()) *
       0.001f;
   m_deltaTime.lastFrame = m_deltaTime.currentFrame;
 
   return isRun;
 }
 
-void Render::onEvent(SDL_Event *event, Camera &camera) {
+void Render::onEvent(SDL_Event* event, Camera& camera) {
   if (event->type == SDL_EVENT_QUIT) {
     isRun = false;
   }

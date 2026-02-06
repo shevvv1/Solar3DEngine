@@ -1,15 +1,14 @@
 #include "skybox.h"
-#include "Render/mesh.h"
-#include "Render/texture.h"
 
-SkyBox::SkyBox(const std::string &pathToDir) {
-  m_cubeMap = TextureManager::getTexture(pathToDir, Texture::TexType::CUBEMAP);
+#include <memory>
 
-  std::vector<VertexP> skyboxVertices = {
-      {glm::vec3(-1.0f, -1.0f, 1.0f)}, {glm::vec3(1.0f, -1.0f, 1.0f)},
-      {glm::vec3(1.0f, -1.0f, -1.0f)}, {glm::vec3(-1.0f, -1.0f, -1.0f)},
-      {glm::vec3(-1.0f, 1.0f, 1.0f)},  {glm::vec3(1.0f, 1.0f, 1.0f)},
-      {glm::vec3(1.0f, 1.0f, -1.0f)},  {glm::vec3(-1.0f, 1.0f, -1.0f)}};
+SkyBox::SkyBox(const std::string& pathToDir, std::shared_ptr<Shader> shader) {
+  m_cubeMap = TextureManager::getTexture(pathToDir, Texture::TexType::CUBEMAP, false);
+
+  std::vector<VertexP> skyboxVertices = {{glm::vec3(-1.0f, -1.0f, 1.0f)}, {glm::vec3(1.0f, -1.0f, 1.0f)},
+                                         {glm::vec3(1.0f, -1.0f, -1.0f)}, {glm::vec3(-1.0f, -1.0f, -1.0f)},
+                                         {glm::vec3(-1.0f, 1.0f, 1.0f)},  {glm::vec3(1.0f, 1.0f, 1.0f)},
+                                         {glm::vec3(1.0f, 1.0f, -1.0f)},  {glm::vec3(-1.0f, 1.0f, -1.0f)}};
   std::vector<unsigned int> skyboxIndices = {// Right
                                              1, 2, 6, 6, 5, 1,
                                              // Left
@@ -24,12 +23,13 @@ SkyBox::SkyBox(const std::string &pathToDir) {
                                              3, 7, 6, 6, 2, 3};
   Mesh<VertexP> mesh(skyboxVertices, skyboxIndices);
   m_cube = mesh;
+  m_shader = shader;
 }
 
 void SkyBox::Bind() { m_cubeMap->Bind(); }
 
-void SkyBox::Draw(Shader &shader) {
+void SkyBox::Draw() {
   m_cubeMap->Bind(0);
-  shader.setUniformInt("skybox", 0);
-  m_cube.Draw(shader);
+  m_shader->setUniformInt("skybox", 0);
+  m_cube.Draw(m_shader, DrawMethod::TRIANGLE_SINGLE);
 }

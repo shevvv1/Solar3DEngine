@@ -1,19 +1,22 @@
 #pragma once
 
-#include "Render/mesh.h"
 #include <memory.h>
+
 #include <memory>
 #include <string>
 
+#include "Object/mesh3D.h"
+
 class SkyBox {
-public:
+ public:
   SkyBox() = default;
-  SkyBox(const std::string &pathToDir);
+  SkyBox(const std::string& pathToDir, std::shared_ptr<Shader> shader);
 
   void Bind();
-  void Draw(Shader &shader);
+  void Draw();
 
-private:
+ private:
   Mesh<VertexP> m_cube;
   std::shared_ptr<Texture> m_cubeMap;
+  std::shared_ptr<Shader> m_shader;
 };

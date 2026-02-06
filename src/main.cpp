@@ -1,5 +1,9 @@
+#include <iostream>
+#include <memory>
+
 #include "Input/inputManager.h"
-#include "Model/model.h"
+#include "Math/mathUtils.h"
+#include "Object/object3D.h"
 #include "Render/GL_render.h"
 #include "Render/shader.h"
 #include "SDL3/SDL_events.h"
@@ -10,20 +14,30 @@
 #include "skybox.h"
 
 void inputInit(InputManager& input, Render& render, Camera& camera, Shader& shader);
-
 int main(int argc, char* argv[]) {
   Render render(1200, 860, "UwU");
-  Camera camera(800, 600, glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.0, 0.0, 1.f));
-  Shader shader("shaders/Default/Vert.glsl", "shaders/Default/Frag.glsl");
+  Camera camera(800, 600, glm::vec3(0.f, 0.f, 5.f), glm::vec3(0.0, 0.0, 1.f));
+  Shader shader("../shaders/Default/Vert.glsl", "../shaders/Default/Frag.glsl");
   Shader shaderSky("shaders/Default/SkyboxVert.glsl", "shaders/Default/SkyboxFrag.glsl");
-  Model model("models/teapot.obj", glm::vec3(0, 0, 0));
-  SkyBox skybox("models/skybox");
+  Object3D model("models/coraline/coraline.obj", std::make_shared<Shader>(shader));
+  SkyBox skybox("models/skybox", std::make_shared<Shader>(shaderSky));
   InputManager input;
   inputInit(input, render, camera, shader);
 
-  glEnable(GL_FRAMEBUFFER_SRGB);
+  model.Move(glm::vec3(0, 0, 0));
+  std::vector<glm::mat4> m;
+  for (size_t i = 0; i < 10; i += 2) {
+    for (size_t j = 0; j < 10; j += 2) {
+      Math::TransformProps props = {glm::vec3(i, 0, j)};
+      m.push_back(props.calculateTransform());
+    }
+  }
+  model.setInstancingMatArr(m);
 
-  float angle = 0;
+  glEnable(GL_FRAMEBUFFER_SRGB);
+  Uint64 lastTime = SDL_GetTicks();
+  int frameCount = 0;
+  float fps = 0;
   SDL_Event e;
   while (render.Run()) {
     while (SDL_PollEvent(&e)) {
@@ -37,18 +51,30 @@ int main(int argc, char* argv[]) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDepthFunc(GL_LEQUAL);
+    glDisable(GL_CULL_FACE);
     shaderSky.Activate();
     camera.updateCamSkyBox(shaderSky);
-    skybox.Draw(shaderSky);
+    skybox.Draw();
     glDepthFunc(GL_LESS);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
 
     shader.Activate();
     camera.updateCam(shader);
-    model.Rotate(glm::vec3(0, angle, 0));
-    angle += 0.1;
-    model.Draw(shader);
+    model.Draw(DrawMethod::TRIANGLE_SINGLE);
 
     SDL_GL_SwapWindow(render.GetWindowID());
+
+    input.ProcessInput();
+    frameCount++;
+    Uint64 currentTime = SDL_GetTicks();
+    if (currentTime - lastTime >= 1000) {  // Раз в секунду
+      fps = frameCount * 1000.0f / (currentTime - lastTime);
+      std::cout << "FPS: " << fps << std::endl;
+      frameCount = 0;
+      lastTime = currentTime;
+    }
   }
   return 0;
 }

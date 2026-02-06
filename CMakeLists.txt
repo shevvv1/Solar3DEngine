@@ -10,7 +10,7 @@ add_subdirectory(libs/SDL3)
 add_subdirectory(libs/glm)
 add_subdirectory(libs/assimp)
 
-file(GLOB SOURCES "src/*.cpp", "src/*/*.cpp", "src/external/glad/src/glad.c")
+file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp" "src/*/*/*.cpp" "src/external/glad/src/glad.c")
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES})
 

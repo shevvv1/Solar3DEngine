@@ -30,11 +30,9 @@ vec4 GetSpecFromUni(vec2 TexCoord){
   vec4 SpecColor = vec4(0.8,0.8,0.8,1.0);
   if(u_specularMap_flag){
     SpecColor = texture(u_specularMap,TexCoord);
-    return vec4(notCompleteZero(SpecColor.rgb),SpecColor.a);
   }
   if(u_ambientColor_flag){
     SpecColor = u_specularColor;
-    return vec4(notCompleteZero(SpecColor.rgb),SpecColor.a);
   }
 
   if(g_hasAlbedo){
@@ -47,11 +45,9 @@ vec4 GetAOFromUni(vec2 TexCoord){
   vec4 AOColor = vec4(0.1,0.1,0.1,1.0);
   if(u_aoMap_flag){
     AOColor = texture(u_aoMap,TexCoord);
-    return vec4(notCompleteZero(AOColor.rgb),AOColor.a);
   }
   if(u_ambientColor_flag){
     AOColor = u_ambientColor;
-    return vec4(notCompleteZero(AOColor.rgb),AOColor.a);
   }
   if(g_hasAlbedo){
     AOColor = GetAlbedoFromUni(TexCoord) * 0.3;
