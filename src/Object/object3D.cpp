@@ -13,9 +13,9 @@
 #include "glm/gtc/quaternion.hpp"
 #include "glm/trigonometric.hpp"
 
-Object3D::Object3D(std::string const& path, std::shared_ptr<Shader> shader) {
+Object3D::Object3D(std::string const& path, std::shared_ptr<Shader> shader, Mesh::Type meshType) {
   std::clog << "Loading model:" << path << "\n";
-
+  m_meshType = meshType;
   m_shader = shader;
   loadObject3D(path);
   Update();
@@ -26,6 +26,10 @@ void Object3D::loadObject3D(std::string const& path) {
   loader.LoadObject3D(path);
   m_meshes = loader.GetMeshArr();
   m_nodes = loader.GetNodeArr();
+  for (auto& m : m_meshes) {
+    m.setVertexType(m_meshType);
+    m.CreateVAO();
+  }
 }
 
 void Object3D::Draw(DrawMethod dMethod) {
@@ -84,7 +88,7 @@ void Object3D::Move(glm::vec3 coord) {
   updateTransform();
 }
 
-void Object3D::setMeshes(const std::vector<Mesh<Vertex>>& meshes) { m_meshes = meshes; }
+void Object3D::setMeshes(const std::vector<Mesh>& meshes) { m_meshes = meshes; }
 void Object3D::setTransformMat(const glm::mat4& m) {
   m_local_mat = m;
   m_transformProps = Math::decomposeTransformM(m_local_mat);

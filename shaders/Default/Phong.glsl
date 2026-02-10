@@ -9,7 +9,7 @@ vec4 CalculatePhong(vec2 TexCoord,vec3 FragPos,vec3 Normal, mat3 TBN){
     vec4 SpecColor = GetSpecFromUni(TexCoord);
     vec4 AmbColor = GetAOFromUni(TexCoord);
 
-    vec3 lightPos = vec3(111,5,0);
+    vec3 lightPos = vec3(0,0,5);
 
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 lightColor = vec3(1.0,1.0,1.0);

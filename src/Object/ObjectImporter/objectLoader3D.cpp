@@ -13,8 +13,6 @@
 #include "assimp/color4.h"
 #include "assimp/material.h"
 #include "assimp/types.h"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/trigonometric.hpp"
 
 namespace Object3DImport {
 
@@ -28,14 +26,6 @@ void AssimpLoader::LoadObject3D(std::string const& path) {
     std::cerr << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
     return;
   }
-  if (m_scene->mMetaData->HasKey("UpAxis")) {
-    int upAxis = 0;
-    if (m_scene->mMetaData->Get("UpAxis", upAxis)) {
-      // 0 = X, 1 = Y, 2 = Z
-      m_yUp = (upAxis == 1);
-    }
-  }
-
   m_rootDir = FileUtils::ExtractRootDir(path.c_str());
   m_processMeshes();
   m_processNodes(m_scene->mRootNode, -1);
@@ -73,14 +63,15 @@ void AssimpLoader::m_processMeshes() {
   }
 }
 
-Mesh<Vertex> AssimpLoader::m_processMesh(aiMesh* mesh) {
+Mesh AssimpLoader::m_processMesh(aiMesh* mesh) {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
   Material material;
+  std::string Name = mesh->mName.C_Str();
 
   if (!mesh->HasPositions() || !mesh->HasFaces()) {
     std::cerr << "Warning: Invalid mesh skipped (no positions or faces)" << std::endl;
-    return Mesh<Vertex>(vertices, indices);
+    return Mesh(vertices, indices, Name);
   }
 
   for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
@@ -144,9 +135,45 @@ Mesh<Vertex> AssimpLoader::m_processMesh(aiMesh* mesh) {
     }
   }
 
+  /*  for (size_t b = 0; b < mesh->mNumBones; b++) {
+      aiBone* aBone = mesh->mBones[b];
+      std::string name = aBone->mName.C_Str();
+
+      int nodeIndex = m_loadedBonestoNodeI[name];
+
+      int boneIndex;
+      if (m_loadedBones.find(name) == m_loadedBones.end()) {
+        boneIndex = m_bones.size();
+        m_loadedBones[name] = boneIndex;
+
+        Bone bone;
+        bone.name = name;
+        bone.node_indx = nodeIndex;
+        m_nodes[nodeIndex].bones_indx = boneIndex;
+        bone.offsetMatrix = m_convertAssimpMatrix(aBone->mOffsetMatrix);
+
+        m_bones.push_back(bone);
+      } else {
+        boneIndex = m_loadedBones[name];
+      }
+
+      // 3. vertex weights
+      for (size_t w = 0; w < aBone->mNumWeights; w++) {
+        int v = aBone->mWeights[w].mVertexId;
+        float weight = aBone->mWeights[w].mWeight;
+
+        for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+          if (vertices[v].BoneIDs[i] < 0) {
+            vertices[v].Weights[i] = weight;
+            vertices[v].BoneIDs[i] = boneIndex;
+          }
+        }
+      }
+    }*/
+
   material = m_loadMaterial(m_scene->mMaterials[mesh->mMaterialIndex]);
 
-  return Mesh<Vertex>(vertices, indices, material);
+  return Mesh(vertices, indices, material, Name);
 }
 
 Material AssimpLoader::m_loadMaterial(aiMaterial* mat) {

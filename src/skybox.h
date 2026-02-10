@@ -16,7 +16,8 @@ class SkyBox {
   void Draw();
 
  private:
-  Mesh<VertexP> m_cube;
+  std::string m_name;
+  Mesh m_cube;
   std::shared_ptr<Texture> m_cubeMap;
   std::shared_ptr<Shader> m_shader;
 };
