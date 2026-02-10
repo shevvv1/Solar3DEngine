@@ -2,13 +2,15 @@
 
 #include <memory>
 
+#include "Object/mesh3D.h"
+
 SkyBox::SkyBox(const std::string& pathToDir, std::shared_ptr<Shader> shader) {
   m_cubeMap = TextureManager::getTexture(pathToDir, Texture::TexType::CUBEMAP, false);
 
-  std::vector<VertexP> skyboxVertices = {{glm::vec3(-1.0f, -1.0f, 1.0f)}, {glm::vec3(1.0f, -1.0f, 1.0f)},
-                                         {glm::vec3(1.0f, -1.0f, -1.0f)}, {glm::vec3(-1.0f, -1.0f, -1.0f)},
-                                         {glm::vec3(-1.0f, 1.0f, 1.0f)},  {glm::vec3(1.0f, 1.0f, 1.0f)},
-                                         {glm::vec3(1.0f, 1.0f, -1.0f)},  {glm::vec3(-1.0f, 1.0f, -1.0f)}};
+  std::vector<Vertex> skyboxVertices = {{glm::vec3(-1.0f, -1.0f, 1.0f)}, {glm::vec3(1.0f, -1.0f, 1.0f)},
+                                        {glm::vec3(1.0f, -1.0f, -1.0f)}, {glm::vec3(-1.0f, -1.0f, -1.0f)},
+                                        {glm::vec3(-1.0f, 1.0f, 1.0f)},  {glm::vec3(1.0f, 1.0f, 1.0f)},
+                                        {glm::vec3(1.0f, 1.0f, -1.0f)},  {glm::vec3(-1.0f, 1.0f, -1.0f)}};
   std::vector<unsigned int> skyboxIndices = {// Right
                                              1, 2, 6, 6, 5, 1,
                                              // Left
@@ -21,8 +23,10 @@ SkyBox::SkyBox(const std::string& pathToDir, std::shared_ptr<Shader> shader) {
                                              0, 1, 5, 5, 4, 0,
                                              // Front
                                              3, 7, 6, 6, 2, 3};
-  Mesh<VertexP> mesh(skyboxVertices, skyboxIndices);
-  m_cube = mesh;
+
+  m_name = "skybox";
+  m_cube = Mesh(skyboxVertices, skyboxIndices, m_name, Mesh::Type::VERTEXP);
+  m_cube.CreateVAO();
   m_shader = shader;
 }
 

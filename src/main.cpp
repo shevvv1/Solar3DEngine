@@ -18,9 +18,9 @@ int main(int argc, char* argv[]) {
   Render render(1200, 860, "UwU");
   Camera camera(800, 600, glm::vec3(0.f, 0.f, 5.f), glm::vec3(0.0, 0.0, 1.f));
   Shader shader("../shaders/Default/Vert.glsl", "../shaders/Default/Frag.glsl");
-  Shader shaderSky("shaders/Default/SkyboxVert.glsl", "shaders/Default/SkyboxFrag.glsl");
-  Object3D model("models/coraline/coraline.obj", std::make_shared<Shader>(shader));
-  SkyBox skybox("models/skybox", std::make_shared<Shader>(shaderSky));
+  Shader shaderSky("../shaders/Default/SkyboxVert.glsl", "../shaders/Default/SkyboxFrag.glsl");
+  SkinnedObject3D model("../models/coraline/coraline.obj", std::make_shared<Shader>(shader));
+  SkyBox skybox("../models/skybox", std::make_shared<Shader>(shaderSky));
   InputManager input;
   inputInit(input, render, camera, shader);
 

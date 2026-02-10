@@ -77,7 +77,7 @@ class AssimpLoader {
 
   void LoadObject3D(std::string const& path);
 
-  std::vector<Mesh<Vertex>> GetMeshArr() { return m_meshes; }
+  std::vector<Mesh> GetMeshArr() { return m_meshes; }
   std::vector<Object3D::Node> GetNodeArr() { return m_nodes; }
 
  private:
@@ -87,7 +87,7 @@ class AssimpLoader {
   bool m_yUp = true;
   std::string m_rootDir;
 
-  std::vector<Mesh<Vertex>> m_meshes;
+  std::vector<Mesh> m_meshes;
   std::vector<Object3D::Node> m_nodes;
 
   std::unordered_map<std::string, aiTextureType> m_matTextureList = defaultMatTextureList;
@@ -96,7 +96,7 @@ class AssimpLoader {
 
   void m_processNodes(const aiNode* ai_node, const int16_t parentIndx);
   void m_processMeshes();
-  Mesh<Vertex> m_processMesh(aiMesh* mesh);
+  Mesh m_processMesh(aiMesh* mesh);
   glm::mat4 m_aiToGlmMat4(const aiMatrix4x4& m);
 
   Material m_loadMaterial(aiMaterial* mat);

@@ -2,9 +2,11 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "Math/mathUtils.h"
+#include "Object/Animation/animator.h"
 #include "Object/mesh3D.h"
 #include "Render/shader.h"
 #include "glm/fwd.hpp"
@@ -22,8 +24,8 @@ class Object3D {
     std::vector<int16_t> mesh_i;
   };
   Object3D() = default;
-  Object3D(std::string const& path, std::shared_ptr<Shader> shader);
-  Object3D(std::vector<Mesh<Vertex>>& mesh_array, std::vector<Node> node_array);
+  Object3D(std::string const& path, std::shared_ptr<Shader> shader, Mesh::Type meshType = Mesh::Type::VERTEX);
+  Object3D(std::vector<Mesh>& mesh_array, std::vector<Object3D::Node> node_array);
 
   void Draw(DrawMethod dMethod);
   void Update();
@@ -34,7 +36,7 @@ class Object3D {
   void Scale(glm::vec3 size);
   void Move(glm::vec3 coord);
 
-  void setMeshes(const std::vector<Mesh<Vertex>>& meshes);
+  void setMeshes(const std::vector<Mesh>& meshes);
   void setTransformMat(const glm::mat4& m);
   void setRoration(float angle, glm::vec3 axis);
 
@@ -42,9 +44,9 @@ class Object3D {
   void setInstancingMatArr(const glm::mat4* M, const size_t arrSize);
   void updateInstancingMatArr();
 
- private:
-  std::vector<Mesh<Vertex>> m_meshes;
-  std::vector<Node> m_nodes;
+ protected:
+  Mesh::Type m_meshType = Mesh::Type::VERTEX;
+  std::vector<Mesh> m_meshes;
   std::shared_ptr<Shader> m_shader;
 
   Math::TransformProps m_transformProps;
@@ -59,4 +61,27 @@ class Object3D {
   glm::mat4 m_calculateHierarhyGlobalMat(int indx, glm::mat4 parentMat);
 
   void m_setMeshInst();
+
+ private:
+  std::vector<Object3D::Node> m_nodes;
+};
+
+class SkinnedObject3D : public Object3D {
+ public:
+  struct Node : Object3D::Node {
+    int16_t bone_i = -1;
+  };
+  struct Bone {
+    int16_t node_i = -1;
+    glm::mat4 offsetMatrix;
+  };
+
+  SkinnedObject3D() = default;
+  SkinnedObject3D(std::string const& path, std::shared_ptr<Shader> shader, Mesh::Type meshType = Mesh::Type::VERTEX);
+
+ private:
+  std::vector<SkinnedObject3D::Node> m_nodes;
+  std::vector<Bone> m_bones;
+  std::vector<glm::mat4> m_finalBoneMatrices;
+  std::unordered_map<std::string, Animation> m_animations;
 };
