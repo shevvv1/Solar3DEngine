@@ -4,67 +4,58 @@
 
 #include <iostream>
 
+#include "SDL3/SDL_video.h"
 #include "camera.h"
 
 void Render::sdl_gl_init() {
-  m_showCursor = false;
+  m_hideCursor = false;
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
     isRun = false;
   }
-  window = SDL_CreateWindow("Test", screen_width, screen_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+  m_window = SDL_CreateWindow("Test", m_screen_width, m_screen_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
-  if (window == nullptr) {
+  if (m_window == nullptr) {
     SDL_Log("Failed to create window: %s\n", SDL_GetError());
     SDL_Quit();
     isRun = false;
   }
 
-  glContext = SDL_GL_CreateContext(window);
-  if (glContext == nullptr) {
+  m_glContext = SDL_GL_CreateContext(m_window);
+  if (m_glContext == nullptr) {
     SDL_Log("Failed to create OpenGL context:%s\n", SDL_GetError());
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(m_window);
     SDL_Quit();
     isRun = false;
   }
 
   if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
     std::cerr << "Failed to initialize GLAD" << std::endl;
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(m_window);
     SDL_Quit();
     isRun = false;
   }
 
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  SDL_SetWindowRelativeMouseMode(m_window, m_hideCursor);
 
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetSwapInterval(1);
-
-  SDL_SetWindowRelativeMouseMode(window, m_showCursor);
+  glViewport(0, 0, m_screen_width, m_screen_height);
 
   glEnable(GL_FRAMEBUFFER_SRGB);
-  glViewport(0, 0, screen_width, screen_height);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 }
 
-Render::Render() : screen_width{640}, screen_height{480}, name{"3DENG"}, isRun{true} { sdl_gl_init(); }
+Render::Render() : m_screen_width{640}, m_screen_height{480}, m_name{"NONAME"}, isRun{true} { sdl_gl_init(); }
 
 Render::Render(int width, int height, std::string nameOfWindow)
-    : screen_width{width}, screen_height{height}, name{nameOfWindow}, isRun{true} {
+    : m_screen_width{width}, m_screen_height{height}, m_name{nameOfWindow}, isRun{true} {
   sdl_gl_init();
 }
 
 Render::~Render() {
-  SDL_GL_DestroyContext(glContext);
-  SDL_DestroyWindow(window);
+  SDL_GL_DestroyContext(m_glContext);
+  SDL_DestroyWindow(m_window);
   SDL_Quit();
 }
 
@@ -84,7 +75,7 @@ void Render::onEvent(SDL_Event* event, Camera& camera) {
   }
   if (event->type == SDL_EVENT_WINDOW_RESIZED) {
     int width, height;
-    SDL_GetWindowSize(GetWindowID(), &width, &height);
+    SDL_GetWindowSize(getWindowID(), &width, &height);
     setScreenWidth(width);
     setScreenHeight(height);
     UpdateViewPort();
@@ -92,19 +83,31 @@ void Render::onEvent(SDL_Event* event, Camera& camera) {
   }
 }
 void Render::setCursorMode(bool mode) {
-  m_showCursor = mode;
+  m_hideCursor = mode;
 
-  SDL_SetWindowRelativeMouseMode(window, m_showCursor);
+  SDL_SetWindowRelativeMouseMode(m_window, m_hideCursor);
 }
 
 void Render::switchCursorMode() {
-  m_showCursor = !m_showCursor;
+  m_hideCursor = !m_hideCursor;
 
-  SDL_SetWindowRelativeMouseMode(window, m_showCursor);
+  SDL_SetWindowRelativeMouseMode(m_window, m_hideCursor);
 }
 
-void Render::UpdateViewPort() { glViewport(0, 0, screen_width, screen_height); }
+void Render::UpdateViewPort() { glViewport(0, 0, m_screen_width, m_screen_height); }
 
-void Render::setScreenWidth(int width) { screen_width = width; }
+void Render::UpdateSDL_GLAttributes() {
+  for (auto& it : m_SDL_GLAttr) {
+    SDL_GL_SetAttribute(it.first, it.second);
+  }
+}
 
-void Render::setScreenHeight(int height) { screen_height = height; }
+void Render::AddSDL_GLAttributes(SDL_GLAttr attr, int value) {
+  if (m_SDL_GLAttr.find(attr) == m_SDL_GLAttr.end()) {
+    std::clog << "This SDL attribute already exist:Rewrite\n";
+  }
+  m_SDL_GLAttr[attr] = value;
+  UpdateSDL_GLAttributes();
+}
+
+void Render::ClearSDL_GLAttributes() { m_SDL_GLAttr.clear(); }

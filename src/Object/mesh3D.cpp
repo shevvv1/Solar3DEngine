@@ -71,7 +71,14 @@ void Mesh::CreateVAO() {
     glVertexAttribPointer(attr.index, attr.size, attr.type, attr.normalized, attr.stride, (void*)(attr.offset));
   }
 
-  std::cout << attributes.size() << std::endl;
+  // TODO:Make if for Skinned model or layout
+
+  glEnableVertexAttribArray(BONE_ATTRIB_I);
+  glVertexAttribIPointer(BONE_ATTRIB_I, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, BoneIDs));
+
+  glEnableVertexAttribArray(WEIGHT_ATTRIB_I);
+  glVertexAttribPointer(WEIGHT_ATTRIB_I, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Weights));
+
   glBindVertexArray(0);
 }
 
@@ -85,15 +92,17 @@ void Mesh::makeInstanced(std::shared_ptr<std::vector<glm::mat4>> tranformMatArr)
   glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
   glBufferData(GL_ARRAY_BUFFER, m_instance_mat->size() * sizeof(glm::mat4), m_instance_mat->data(), GL_STATIC_DRAW);
 
-  std::size_t vec4Size = sizeof(glm::vec4);
   glEnableVertexAttribArray(INSTANCE_ATTRIB_I);
-  glVertexAttribPointer(INSTANCE_ATTRIB_I, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
+  glVertexAttribPointer(INSTANCE_ATTRIB_I, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)0);
   glEnableVertexAttribArray(INSTANCE_ATTRIB_I + 1);
-  glVertexAttribPointer(INSTANCE_ATTRIB_I + 1, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(1 * vec4Size));
+  glVertexAttribPointer(INSTANCE_ATTRIB_I + 1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4),
+                        (void*)(1 * sizeof(glm::vec4)));
   glEnableVertexAttribArray(INSTANCE_ATTRIB_I + 2);
-  glVertexAttribPointer(INSTANCE_ATTRIB_I + 2, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+  glVertexAttribPointer(INSTANCE_ATTRIB_I + 2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4),
+                        (void*)(2 * sizeof(glm::vec4)));
   glEnableVertexAttribArray(INSTANCE_ATTRIB_I + 3);
-  glVertexAttribPointer(INSTANCE_ATTRIB_I + 3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
+  glVertexAttribPointer(INSTANCE_ATTRIB_I + 3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4),
+                        (void*)(3 * sizeof(glm::vec4)));
 
   glVertexAttribDivisor(INSTANCE_ATTRIB_I, 1);
   glVertexAttribDivisor(INSTANCE_ATTRIB_I + 1, 1);
@@ -109,7 +118,6 @@ void Mesh::Draw(std::shared_ptr<Shader> shader, DrawMethod dMethod) {
   if (!material.Empty()) {
     material.Bind(*shader);
   }
-  glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
   switch (dMethod) {
     case DrawMethod::TRIANGLE_SINGLE:
       shader->setUniformBool("u_instanceDraw", false);
@@ -140,13 +148,11 @@ VertexPNT::VertexPNT(const Vertex& v) {
   TexCoord = v.TexCoord;
 }
 
-std::array<VertexAttribute, 6> Vertex::layout() {
+std::array<VertexAttribute, 4> Vertex::layout() {
   return {{{POS_ATTRIB_I, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, position)},
            {NORM_ATTRIB_I, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Normal)},
            {UI_ATTRIB_I, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, TexCoord)},
-           {TANGENT_ATTRIB_I, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Tangent)},
-           {BONE_ATTRIB_I, 4, GL_INT, sizeof(Vertex), offsetof(Vertex, m_BoneIDs)},
-           {WEIGHT_ATTRIB_I, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, m_Weights)}}};
+           {TANGENT_ATTRIB_I, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Tangent)}}};
 }
 
 std::array<VertexAttribute, 1> VertexP::layout() {

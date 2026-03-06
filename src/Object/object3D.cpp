@@ -17,11 +17,11 @@ Object3D::Object3D(std::string const& path, std::shared_ptr<Shader> shader, Mesh
   std::clog << "Loading model:" << path << "\n";
   m_meshType = meshType;
   m_shader = shader;
-  loadObject3D(path);
+  Load(path);
   Update();
 }
 
-void Object3D::loadObject3D(std::string const& path) {
+void Object3D::Load(std::string const& path) {
   Object3DImport::AssimpLoader loader;
   loader.LoadObject3D(path);
   m_meshes = loader.GetMeshArr();
@@ -33,6 +33,7 @@ void Object3D::loadObject3D(std::string const& path) {
 }
 
 void Object3D::Draw(DrawMethod dMethod) {
+  m_shader->setUniformBool("hasBone", false);
   for (auto& n : m_nodes) {
     if (n.mesh_i.empty()) continue;
     if (dMethod == DrawMethod::TRIANGLE_SINGLE) {
@@ -90,8 +91,8 @@ void Object3D::Move(glm::vec3 coord) {
 
 void Object3D::setMeshes(const std::vector<Mesh>& meshes) { m_meshes = meshes; }
 void Object3D::setTransformMat(const glm::mat4& m) {
-  m_local_mat = m;
-  m_transformProps = Math::decomposeTransformM(m_local_mat);
+  m_transform_mat = m;
+  m_transformProps = Math::decomposeTransformM(m_transform_mat);
 }
 
 void Object3D::setInstancingMatArr(const std::vector<glm::mat4>& M) {
@@ -106,12 +107,6 @@ void Object3D::setInstancingMatArr(const glm::mat4* M, const size_t arrSize) {
   m_instance_mat.assign(M, M + arrSize);
   m_instance_mat.shrink_to_fit();
   m_setMeshInst();
-}
-
-void Object3D::updateInstancingMatArr() {
-  for (auto& m : m_instance_mat) {
-    m = m_local_mat * m;
-  }
 }
 
 void Object3D::m_setMeshInst() {

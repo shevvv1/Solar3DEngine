@@ -15,91 +15,57 @@
 
 namespace Object3DImport {
 
-struct AiMatKey {
-  const char* key;
-  unsigned int type;
-  unsigned int index;
-
-  AiMatKey(const char* k = nullptr, unsigned t = 0, unsigned i = 0) : key(k), type(t), index(i) {}
-
-  bool operator==(const AiMatKey& other) const {
-    return key == other.key && type == other.type && index == other.index;
-  }
-};
-
-static const std::unordered_map<std::string, aiTextureType> defaultMatTextureList = {
-    {"u_albedoMap", aiTextureType_DIFFUSE},
-    {"u_albedoMap", aiTextureType_BASE_COLOR},
-    {"u_specularMap", aiTextureType_SPECULAR},
-    {"u_aoMap", aiTextureType_AMBIENT},
-    {"u_aoMap", aiTextureType_AMBIENT_OCCLUSION},
-    {"u_alphaMap", aiTextureType_SHEEN},
-    {"u_normalMap", aiTextureType_NORMALS},
-    {"u_heightMap", aiTextureType_HEIGHT},
-    {"u_emissiveMap", aiTextureType_EMISSIVE},
-    {"u_metallicMap", aiTextureType_METALNESS},
-    {"u_roughnessMap", aiTextureType_DIFFUSE_ROUGHNESS},
-    {"u_metallicRoughnessMap", aiTextureType_GLTF_METALLIC_ROUGHNESS},
-    {"u_emissiveMap", aiTextureType_EMISSION_COLOR},
-    {"u_lightMap", aiTextureType_LIGHTMAP}};
-
-static const std::unordered_map<std::string, AiMatKey> defaultMatColorList = {
-    // Colors
-    {"u_albedoColor", {AI_MATKEY_COLOR_DIFFUSE}},          {"u_specularColor", {AI_MATKEY_COLOR_SPECULAR}},
-    {"u_ambientColor", {AI_MATKEY_COLOR_AMBIENT}},         {"u_emissiveColor", {AI_MATKEY_COLOR_EMISSIVE}},
-    {"u_transparentColor", {AI_MATKEY_COLOR_TRANSPARENT}}, {"u_reflectiveColor", {AI_MATKEY_COLOR_REFLECTIVE}}};
-
-static const std::unordered_map<std::string, AiMatKey> defaultMatPropList = {
-    // PBR properties
-    {"u_metallicFactor", {AI_MATKEY_METALLIC_FACTOR}},
-    {"u_roughnessFactor", {AI_MATKEY_ROUGHNESS_FACTOR}},
-
-    // Phong properties
-    {"u_shininess", {AI_MATKEY_SHININESS}},
-    {"u_shininessStrength", {AI_MATKEY_SHININESS_STRENGTH}},
-    {"u_reflectivity", {AI_MATKEY_REFLECTIVITY}},
-    {"u_refractionIndex", {AI_MATKEY_REFRACTI}},
-
-    // Opacity/Transparency
-    {"u_opacity", {AI_MATKEY_OPACITY}},
-    {"u_transparencyFactor", {AI_MATKEY_TRANSPARENCYFACTOR}},
-
-    // Bump/Displacement
-    {"u_bumpScaling", {AI_MATKEY_BUMPSCALING}},
-};
-
-//---------
-
 class AssimpLoader {
  public:
   AssimpLoader() = default;
-  AssimpLoader(const unsigned aiProcess_flags);
+  AssimpLoader(const std::string& path, const unsigned aiProcess_flags);
 
   void LoadObject3D(std::string const& path);
 
+  Object3D AssembleObject3D();
+  SkinnedObject3D AssembleSkinnedObject3D();
+
+  void ClearAll();
+
+  void setAiProcessFlags(const unsigned flags) { m_aiProcess_flags = flags; }
+
+  void setMaterialTextureList(const std::vector<std::string> u_names) { m_matTextureList = u_names; }
+  void setMaterialColorList(const std::vector<std::string> u_names) { m_matColorList = u_names; }
+  void setMaterialProperties(const std::vector<std::string> u_names) { m_matPropList = u_names; }
+
   std::vector<Mesh> GetMeshArr() { return m_meshes; }
-  std::vector<Object3D::Node> GetNodeArr() { return m_nodes; }
+  std::vector<Node> GetNodeArr() { return m_nodes; }
+  std::vector<SkinnedObject3D::Bone> GetBoneArr() { return m_bones; }
+  std::vector<Animation> GetAnimArr() { return m_animations; }
 
  private:
   const aiScene* m_scene;
   unsigned m_aiProcess_flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_GenUVCoords |
                                aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GlobalScale;
-  bool m_yUp = true;
   std::string m_rootDir;
 
   std::vector<Mesh> m_meshes;
-  std::vector<Object3D::Node> m_nodes;
+  std::vector<Node> m_nodes;
+  std::unordered_map<std::string, int> m_loadedNodes;
+  std::vector<SkinnedObject3D::Bone> m_bones;
+  std::unordered_map<std::string, int16_t> m_loadedBones;
+  std::vector<Animation> m_animations;
 
-  std::unordered_map<std::string, aiTextureType> m_matTextureList = defaultMatTextureList;
-  std::unordered_map<std::string, AiMatKey> m_matColorList = defaultMatColorList;
-  std::unordered_map<std::string, AiMatKey> m_matPropList = defaultMatPropList;
+  std::vector<std::string> m_matTextureList;
+  std::vector<std::string> m_matColorList;
+  std::vector<std::string> m_matPropList;
 
   void m_processNodes(const aiNode* ai_node, const int16_t parentIndx);
   void m_processMeshes();
   Mesh m_processMesh(aiMesh* mesh);
-  glm::mat4 m_aiToGlmMat4(const aiMatrix4x4& m);
+  void m_processAnimations();
+  void m_processAnimationChannels(aiAnimation* aAnim, Animation& anim);
 
   Material m_loadMaterial(aiMaterial* mat);
   MaterialType m_detectMaterialType(aiMaterial* material);
+
+  glm::mat4 m_aiToGlmMat4(const aiMatrix4x4& m);
+  glm::vec3 m_convertAssimpVec3(const aiVector3D& v);
+  glm::quat m_convertAssimpQuat(const aiQuaternion& q);
 };
 }  // namespace Object3DImport
