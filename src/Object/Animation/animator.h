@@ -6,12 +6,6 @@
 #include <unordered_map>
 #include <vector>
 
-struct Bone {
-  std::string name;
-  int node_indx;
-  glm::mat4 offsetMatrix;
-};
-
 struct KeyVec3 {
   float time;
   glm::vec3 value;

@@ -1,8 +1,6 @@
-#version 330 core
+#version 420 core
 
-#include "PBR.glsl"
 #include "Phong.glsl"
-
 
 out vec4 FragColor;
 
@@ -16,6 +14,7 @@ in VS_OUT{
 
 void main()
 {
-    FragColor = CalculatePhong(fs_in.TexCoord,fs_in.FragPos,fs_in.Normal,fs_in.TBN);
+ FragColor = CalculatePhong(fs_in.TexCoord,fs_in.FragPos,fs_in.Normal,fs_in.TBN);
+   // FragColor = vec4(1,0,0,1);
 }
 

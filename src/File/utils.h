@@ -1,6 +1,9 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
+
+namespace fs = std::filesystem;
 
 namespace FileUtils {
 std::string ExtractFilename(const char* path);

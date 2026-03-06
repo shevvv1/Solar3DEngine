@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-#include "Object/material.h"
+#include "Material/material.h"
 
 struct VertexAttribute {
   GLuint index;
@@ -29,16 +29,17 @@ struct VertexAttribute {
 #define INSTANCE_ATTRIB_I 6
 
 #define MAX_BONE_INFLUENCE 4
+
 struct Vertex {
   glm::vec3 position;
   glm::vec3 Normal;
   glm::vec2 TexCoord;
   glm::vec3 Tangent;
 
-  int m_BoneIDs[MAX_BONE_INFLUENCE];
-  float m_Weights[MAX_BONE_INFLUENCE];
+  int BoneIDs[MAX_BONE_INFLUENCE] = {-1, -1, -1, -1};
+  float Weights[MAX_BONE_INFLUENCE] = {0.0, 0.0, 0.0, 0.0};
 
-  static std::array<VertexAttribute, 6> layout();
+  static std::array<VertexAttribute, 4> layout();
 };
 
 struct VertexP {

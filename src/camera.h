@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -12,13 +13,12 @@
 #define PERSPECTIVE 1
 
 class Camera {
-public:
-  Camera() {}
-  Camera(int width, int height, glm::vec3 position, glm::vec3 direction,
-         bool projMode = PERSPECTIVE);
+ public:
+  Camera() = default;
+  Camera(int width, int height, glm::vec3 position, glm::vec3 direction, bool projMode = PERSPECTIVE);
 
-  void updateCam(Shader &shader);
-  void updateCamSkyBox(Shader &shader);
+  void updateCam(Shader& shader);
+  void updateCamSkyBox(Shader& shader);
 
   void setPosition(glm::vec3 position);
   void setDirection(glm::vec3 direction);
@@ -40,7 +40,7 @@ public:
 
   float yaw, pitch;
 
-private:
+ private:
   int m_width, m_height;
 
   float m_nearPlane, m_farPlane;

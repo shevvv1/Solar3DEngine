@@ -5,57 +5,41 @@
 
 uniform int u_MatType;
 
+layout(std140,binding = 1) uniform MatData{
+    int u_matFlags;
+    float shininess;
+    float metallness;
+    float roghness;
+    vec4 u_albedoColor;
+    vec4 specular;
+    vec4 ambient;
+}; 
+
 //Map textures
 uniform sampler2D u_albedoMap;
 uniform sampler2D u_specularMap;
 uniform sampler2D u_aoMap;
 uniform sampler2D u_normalMap;
-uniform sampler2D u_heightMap;
-uniform sampler2D u_emissiveMap;
 uniform sampler2D u_metallicMap;
 uniform sampler2D u_roughnessMap;
 uniform sampler2D u_metallicRoughnessMap;
-uniform sampler2D u_lightMap;
-
-//Map_flags
-uniform bool u_albedoMap_flag;
-uniform bool u_specularMap_flag;
-uniform bool u_aoMap_flag;
-uniform bool u_normalMap_flag;
-uniform bool u_heightMap_flag;
-uniform bool u_emissiveMap_flag;
-uniform bool u_metallicMap_flag;
-uniform bool u_roughnessMap_flag;
-uniform bool u_metallicRoughnessMap_flag;
-uniform bool u_lightMap_flag;
-
-//Colors
-uniform vec4 u_albedoColor;
-uniform vec4 u_specularColor;
-uniform vec4 u_ambientColor;
-uniform vec4 u_emissiveColor;
-uniform vec4 u_transparentColor;
-uniform vec4 u_reflectiveColor;
-
-//Colors_flags
-uniform bool u_albedoColor_flag;
-uniform bool u_specularColor_flag;
-uniform bool u_ambientColor_flag;
-uniform bool u_emissiveColor_flag;
-uniform bool u_transparentColor_flag;
-uniform bool u_reflectiveColor_flag;
-
 
 //Properties
 uniform float u_metallicFactor;
 uniform float u_roughnessFactor;
-uniform float u_shininess;
-uniform float u_shininessStrength;
-uniform float u_reflectivity;
-uniform float u_refractionIndex;
-uniform float u_opacity;
-uniform float u_transparencyFactor;
-uniform float u_bumpScaling;
 
+//flags
+ const int HAS_ALBEDO_MAP = 1 << 0;
+ const int  HAS_NORMAL_MAP = 1 << 1;
+ const int HAS_METALLIC_MAP = 1 << 2;
+ const int HAS_ROUGHNESS_MAP = 1 << 3;
+ const int HAS_METALIC_ROUGHNESS_MAP = 1 << 4;
+ const int HAS_AO_MAP = 1 << 5;
+ const int HAS_EMISSIVE_MAP = 1 << 6;
+ const int HAS_SPECULAR_MAP = 1 << 7;
+ const int HAS_HEIGHT_MAP = 1 << 8;
 
-bool g_hasAlbedo = u_albedoMap_flag && u_albedoColor_flag;
+ const int HAS_ALBEDO_COLOR = 1 << 9;
+ const int HAS_SPECULAR_COLOR = 1 << 10;
+ const int HAS_AO_COLOR = 1 << 11;
+ const int HAS_EMISSIVE_COLOR = 1 << 12;

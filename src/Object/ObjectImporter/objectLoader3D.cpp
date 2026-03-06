@@ -7,16 +7,17 @@
 #include <vector>
 
 #include "File/utils.h"
-#include "Object/material.h"
+#include "Object/Material/material.h"
 #include "Object/mesh3D.h"
-#include "Render/texture.h"
-#include "assimp/color4.h"
-#include "assimp/material.h"
+#include "Object/object3D.h"
 #include "assimp/types.h"
 
 namespace Object3DImport {
 
-AssimpLoader::AssimpLoader(const unsigned aiProcess_flags) { m_aiProcess_flags = aiProcess_flags; }
+AssimpLoader::AssimpLoader(const std::string& path, const unsigned aiProcess_flags) {
+  m_aiProcess_flags = aiProcess_flags;
+  LoadObject3D(path);
+}
 
 void AssimpLoader::LoadObject3D(std::string const& path) {
   Assimp::Importer import;
@@ -26,9 +27,12 @@ void AssimpLoader::LoadObject3D(std::string const& path) {
     std::cerr << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
     return;
   }
+
   m_rootDir = FileUtils::ExtractRootDir(path.c_str());
-  m_processMeshes();
+
   m_processNodes(m_scene->mRootNode, -1);
+  m_processMeshes();
+  m_processAnimations();
 
   std::cout << "Object3D loaded: " << path << std::endl;
   std::cout << "  Meshes: " << m_meshes.size() << std::endl;
@@ -37,7 +41,7 @@ void AssimpLoader::LoadObject3D(std::string const& path) {
 void AssimpLoader::m_processNodes(const aiNode* ai_node, const int16_t parentIndx) {
   // std::cout << "NODE: " << ai_node->mName.C_Str() << " (meshes in node: " << ai_node->mNumMeshes << ")" << std::endl;
 
-  Object3D::Node node;
+  Node node;
   node.name = ai_node->mName.C_Str();
 
   glm::mat4 localTransform = m_aiToGlmMat4(ai_node->mTransformation);
@@ -47,6 +51,7 @@ void AssimpLoader::m_processNodes(const aiNode* ai_node, const int16_t parentInd
   node.parent_i = parentIndx;
   int node_i = m_nodes.size();
   m_nodes.push_back(node);
+  m_loadedNodes[node.name] = node_i;
 
   if (parentIndx >= 0) m_nodes[parentIndx].children_i.push_back(node_i);
 
@@ -135,107 +140,86 @@ Mesh AssimpLoader::m_processMesh(aiMesh* mesh) {
     }
   }
 
-  /*  for (size_t b = 0; b < mesh->mNumBones; b++) {
-      aiBone* aBone = mesh->mBones[b];
-      std::string name = aBone->mName.C_Str();
+  for (size_t b = 0; b < mesh->mNumBones; b++) {
+    aiBone* aBone = mesh->mBones[b];
+    std::string name = aBone->mName.C_Str();
 
-      int nodeIndex = m_loadedBonestoNodeI[name];
+    int nodeIndex = m_loadedNodes[name];
 
-      int boneIndex;
-      if (m_loadedBones.find(name) == m_loadedBones.end()) {
-        boneIndex = m_bones.size();
-        m_loadedBones[name] = boneIndex;
+    int boneIndex;
+    if (m_loadedBones.find(name) == m_loadedBones.end()) {
+      boneIndex = m_bones.size();
+      m_loadedBones[name] = boneIndex;
 
-        Bone bone;
-        bone.name = name;
-        bone.node_indx = nodeIndex;
-        m_nodes[nodeIndex].bones_indx = boneIndex;
-        bone.offsetMatrix = m_convertAssimpMatrix(aBone->mOffsetMatrix);
+      SkinnedObject3D::Bone bone;
+      bone.name = name;
+      m_nodes[nodeIndex].bone_i = boneIndex;
+      bone.offsetMatrix = m_aiToGlmMat4(aBone->mOffsetMatrix);
+      m_bones.push_back(bone);
+    } else {
+      boneIndex = m_loadedBones[name];
+    }
 
-        m_bones.push_back(bone);
-      } else {
-        boneIndex = m_loadedBones[name];
-      }
+    for (size_t w = 0; w < aBone->mNumWeights; w++) {
+      int v = aBone->mWeights[w].mVertexId;
+      float weight = aBone->mWeights[w].mWeight;
 
-      // 3. vertex weights
-      for (size_t w = 0; w < aBone->mNumWeights; w++) {
-        int v = aBone->mWeights[w].mVertexId;
-        float weight = aBone->mWeights[w].mWeight;
-
-        for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
-          if (vertices[v].BoneIDs[i] < 0) {
-            vertices[v].Weights[i] = weight;
-            vertices[v].BoneIDs[i] = boneIndex;
-          }
+      for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+        if (vertices[v].BoneIDs[i] < 0) {
+          vertices[v].Weights[i] = weight;
+          vertices[v].BoneIDs[i] = boneIndex;
+          break;
         }
       }
-    }*/
+    }
+  }
 
   material = m_loadMaterial(m_scene->mMaterials[mesh->mMaterialIndex]);
 
   return Mesh(vertices, indices, material, Name);
 }
 
-Material AssimpLoader::m_loadMaterial(aiMaterial* mat) {
-  Material material;
+void AssimpLoader::m_processAnimations() {
+  {
+    for (unsigned i = 0; i < m_scene->mNumAnimations; i++) {
+      aiAnimation* aAnim = m_scene->mAnimations[i];
+      Animation anim;
 
-  MaterialType mat_type = m_detectMaterialType(mat);
+      anim.name = aAnim->mName.C_Str();
+      anim.duration = (float)aAnim->mDuration;
+      anim.ticksPerSecond = aAnim->mTicksPerSecond != 0 ? (float)aAnim->mTicksPerSecond : 25.0f;
 
-  material.setType(mat_type);
+      m_processAnimationChannels(aAnim, anim);
 
-  aiString str;
-  std::string tex_path;
-  for (auto& it : m_matTextureList) {
-    if (mat->GetTexture(it.second, 0, &str) == AI_SUCCESS) {
-      tex_path = m_rootDir + '/' + str.C_Str();
-      tex_path = FileUtils::convertTextureFilePath(str.C_Str(), m_rootDir.c_str());
-      std::cout << tex_path << std::endl;
-      material.setNewMap(it.first, TextureManager::getTexture(tex_path));
-      material.setNewFlag(it.first + "_flag", true);
-      std::cout << it.first << true << "\n";
-      str.Clear();
-    } else {
-      material.setNewFlag(it.first + "_flag", false);
+      m_animations.push_back(anim);
     }
   }
-  for (auto& it : m_matColorList) {
-    aiColor4D aiCol;
-    if (mat->Get(it.second.key, it.second.type, it.second.index, aiCol) == AI_SUCCESS) {
-      material.setNewColor(it.first, glm::vec4(aiCol.r, aiCol.g, aiCol.b, aiCol.a));
-      material.setNewFlag(it.first + "_flag", true);
-    } else {
-      material.setNewFlag(it.first + "_flag", false);
-    }
-  }
-  for (auto& it : m_matPropList) {
-    float aiProp;
-    if (mat->Get(it.second.key, it.second.type, it.second.index, aiProp) == AI_SUCCESS) {
-      material.setNewFloat(it.first, aiProp);
-      material.setNewFlag(it.first + "_flag", true);
-    } else {
-      material.setNewFlag(it.first + "_flag", false);
-    }
-  }
-
-  int doubleSided = 0;
-  if (mat->Get(AI_MATKEY_TWOSIDED, doubleSided) == AI_SUCCESS && doubleSided) {
-    material.setDoubleSide(true);
-  }
-
-  return material;
 }
 
-MaterialType AssimpLoader::m_detectMaterialType(aiMaterial* material) {
-  bool hasPBRMaps = (material->GetTextureCount(aiTextureType_METALNESS) > 0) ||
-                    (material->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0) ||
-                    (material->GetTextureCount(aiTextureType_GLTF_METALLIC_ROUGHNESS) > 0);
-  float f;
-  bool hasPBRprop = (material->Get(AI_MATKEY_METALLIC_FACTOR, f) == AI_SUCCESS ||
-                     material->Get(AI_MATKEY_ROUGHNESS_FACTOR, f) == AI_SUCCESS);
-  if (hasPBRMaps || hasPBRprop) {
-    return MaterialType::PBR;
-  } else {
-    return MaterialType::PHONG;
+void AssimpLoader::m_processAnimationChannels(aiAnimation* aAnim, Animation& anim) {
+  for (unsigned c = 0; c < aAnim->mNumChannels; c++) {
+    aiNodeAnim* channel = aAnim->mChannels[c];
+
+    std::string nodeName = channel->mNodeName.C_Str();
+
+    AnimationChannel ch;
+
+    for (unsigned i = 0; i < channel->mNumPositionKeys; i++) {
+      ch.positions.push_back(
+          {(float)channel->mPositionKeys[i].mTime, m_convertAssimpVec3(channel->mPositionKeys[i].mValue)});
+    }
+
+    for (unsigned i = 0; i < channel->mNumRotationKeys; i++) {
+      ch.rotations.push_back(
+          {(float)channel->mRotationKeys[i].mTime, m_convertAssimpQuat(channel->mRotationKeys[i].mValue)});
+    }
+
+    for (unsigned i = 0; i < channel->mNumScalingKeys; i++) {
+      ch.scales.push_back(
+          {(float)channel->mScalingKeys[i].mTime, m_convertAssimpVec3(channel->mScalingKeys[i].mValue)});
+    }
+
+    anim.channels[nodeName] = ch;
   }
 }
 
@@ -261,4 +245,9 @@ glm::mat4 AssimpLoader::m_aiToGlmMat4(const aiMatrix4x4& m) {
 
   return to;
 }
+
+glm::vec3 AssimpLoader::m_convertAssimpVec3(const aiVector3D& v) { return glm::vec3(v.x, v.y, v.z); }
+
+glm::quat AssimpLoader::m_convertAssimpQuat(const aiQuaternion& q) { return glm::quat(q.w, q.x, q.y, q.z); }
+
 }  // namespace Object3DImport

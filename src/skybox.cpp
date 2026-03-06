@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "CacheManager/cacheManager.h"
 #include "Object/mesh3D.h"
 
 SkyBox::SkyBox(const std::string& pathToDir, std::shared_ptr<Shader> shader) {

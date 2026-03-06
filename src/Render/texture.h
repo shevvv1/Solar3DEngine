@@ -2,9 +2,7 @@
 
 #include <glad/glad.h>
 
-#include <memory>
 #include <string>
-#include <unordered_map>
 
 #include "external/stb_image.h"
 
@@ -27,24 +25,3 @@ class Texture {
 };
 
 void unbindTextures();
-
-class TextureManager {
- public:
-  static std::shared_ptr<Texture> getTexture(const std::string& path,
-                                             const Texture::TexType type = Texture::TexType::BASIC,
-                                             bool flipUVs = false) {
-    auto it = cache.find(path);
-    if (it != cache.end()) {
-      return it->second;
-    }
-
-    auto texture = std::make_shared<Texture>(path, type, flipUVs);
-    cache[path] = texture;
-    return texture;
-  }
-
-  static void clear() { cache.clear(); }
-
- private:
-  static inline std::unordered_map<std::string, std::shared_ptr<Texture>> cache;
-};

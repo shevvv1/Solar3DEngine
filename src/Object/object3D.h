@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "Math/mathUtils.h"
@@ -10,22 +9,29 @@
 #include "Object/mesh3D.h"
 #include "Render/shader.h"
 #include "glm/fwd.hpp"
+struct Node {
+  std::string name;
+  int16_t parent_i = -1;
+  std::vector<int16_t> children_i;
+
+  int16_t bone_i = -1;
+
+  glm::mat4 localTransform;
+  glm::mat4 globalTransform;
+  glm::mat4 normalMatrix;
+
+  std::vector<int16_t> mesh_i;
+};
 
 class Object3D {
  public:
-  struct Node {
-    std::string name;
-    int16_t parent_i = -1;
-    std::vector<int16_t> children_i;
-
-    glm::mat4 localTransform;
-    glm::mat4 globalTransform;
-
-    std::vector<int16_t> mesh_i;
-  };
   Object3D() = default;
   Object3D(std::string const& path, std::shared_ptr<Shader> shader, Mesh::Type meshType = Mesh::Type::VERTEX);
-  Object3D(std::vector<Mesh>& mesh_array, std::vector<Object3D::Node> node_array);
+  Object3D(std::vector<Mesh>& mesh_array, std::vector<Node> node_array);
+
+  void Load(const std::string& path, const std::vector<std::string>& MatTextureList,
+            const std::vector<std::string>& MatColorList, const std::vector<std::string>& MatPropList);
+  void Load(const std::string& path);
 
   void Draw(DrawMethod dMethod);
   void Update();
@@ -42,11 +48,11 @@ class Object3D {
 
   void setInstancingMatArr(const std::vector<glm::mat4>& M);
   void setInstancingMatArr(const glm::mat4* M, const size_t arrSize);
-  void updateInstancingMatArr();
 
  protected:
   Mesh::Type m_meshType = Mesh::Type::VERTEX;
   std::vector<Mesh> m_meshes;
+  std::vector<Node> m_nodes;
   std::shared_ptr<Shader> m_shader;
 
   Math::TransformProps m_transformProps;
@@ -57,31 +63,33 @@ class Object3D {
 
   std::vector<glm::mat4> m_instance_mat;
 
-  void loadObject3D(std::string const& path);
   glm::mat4 m_calculateHierarhyGlobalMat(int indx, glm::mat4 parentMat);
 
   void m_setMeshInst();
-
- private:
-  std::vector<Object3D::Node> m_nodes;
 };
 
 class SkinnedObject3D : public Object3D {
  public:
-  struct Node : Object3D::Node {
-    int16_t bone_i = -1;
-  };
   struct Bone {
-    int16_t node_i = -1;
+    std::string name;
     glm::mat4 offsetMatrix;
+    glm::mat4 m_finalBoneMatrix;
   };
 
   SkinnedObject3D() = default;
   SkinnedObject3D(std::string const& path, std::shared_ptr<Shader> shader, Mesh::Type meshType = Mesh::Type::VERTEX);
 
+  void Load(std::string const& path);
+
+  void Draw(DrawMethod dMethod);
+  void setAnimation(size_t indx) { m_anim_i = indx; }
+  void RunAnimation(float deltaTime);
+
  private:
-  std::vector<SkinnedObject3D::Node> m_nodes;
   std::vector<Bone> m_bones;
-  std::vector<glm::mat4> m_finalBoneMatrices;
-  std::unordered_map<std::string, Animation> m_animations;
+  std::vector<Animation> m_animations;
+  int m_anim_i = -1;
+  int m_anim_time = 0;
+
+  glm::mat4 m_calculateHierarhyGlobalMat(int indx, glm::mat4 parentMat);
 };
